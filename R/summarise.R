@@ -30,7 +30,7 @@
 #' @param anno_name Character, annotation name to use and add to the summarised table, e.g. 'Enhancer'
 #' @param context One of c('CG', 'GC')
 #' @param valid_chromosomes Character vector of chromosomes to keep. Must match the chromosome notation in the data
-#' @param a, b Beta prior parameters. See SN 1 \link{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4117646/}
+#' @param a,b Beta prior parameters. See SN 1 \url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4117646/}
 #' @param out.dir Output directory to save the tsv file. The output file will be of form: outdir/CpG_or_GpC/anno_name/cov_file_name.tsv
 #' @param force Logical, whether to overwrite even if the output file exists
 #' @name summarise
@@ -62,7 +62,7 @@ summarise_sample <- function(filepath,
                              out.dir,
                              force=FALSE)
 {
-
+  N <- Nmet <- anno <- chr <- end <- id <- rate <- set_names <- start <- . <- NULL ## suppress R CMD check complain for NSE
   # fname.out = create_output_filename(filepath, anno_name)
   # filepath <- 'data/CpG/10A_DAC_060320_cytosine.NOMe.CpG.cov.gz'
   gsub("/$", "", out.dir) # remove trailing slash, if any
@@ -101,7 +101,7 @@ summarise_sample <- function(filepath,
     # annotation_file <- 'data/Annotations/CGI_SeqMonk.txt'
     # annotation_file <- 'data/Annotations/bed/Exons.bed'
     anno_data <- fread(annotation_file)
-    anno_data <- set_names(anno_data, c("chr","start","end","strand","id"))
+    colnames(anno_data) <- c("chr","start","end","strand","id")
     anno_data <- anno_data[id != ''] # remove blank IDs
     anno_data[,anno := anno_name]
     anno_data <- setkey(x = anno_data, chr, start, end)

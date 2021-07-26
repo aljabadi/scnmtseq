@@ -66,7 +66,7 @@ summarise(
 
 \item{valid_chromosomes}{Character vector of chromosomes to keep. Must match the chromosome notation in the data}
 
-\item{a, }{b Beta prior parameters. See SN 1 \link{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4117646/}}
+\item{a, b}{Beta prior parameters. See SN 1 \url{https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4117646/}}
 
 \item{out.dir}{Output directory to save the tsv file. The output file will be of form: outdir/CpG_or_GpC/anno_name/cov_file_name.tsv}
 

@@ -8,7 +8,7 @@
 \usage{
 merge_anno(anno_path, force = FALSE)
 
-merge_context(context_path, force = FALSE)
+merge_context(context_path, force = FALSE, cores = 1)
 }
 \arguments{
 \item{anno_path}{path to the directory containing the summarised tsv files for each cell for a given annotation}

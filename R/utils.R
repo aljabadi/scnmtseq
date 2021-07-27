@@ -7,7 +7,7 @@
 #' @name utils
 #' @return None
 NULL
-## ---- colourised 'cat's
+## ---- colourised 'cat's with \code{sprintf} style input
 #' @examples
 #' cat2("this is a '%s' text", 'yellow')
 #' @rdname utils

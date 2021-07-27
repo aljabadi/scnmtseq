@@ -37,6 +37,9 @@
 #' @return Writes file to out.dir and returns NULL
 NULL
 
+## suppress R CMD check complain for NSE
+utils::globalVariables( c("N", "Nmet", "anno", "chr", "end", "id", "rate", "set_names", "start", "."))
+
 #' @details
 #' \itemize{
 #' \item{\code{summarise_sample} summarises the calls for a given cov.gz file and annotation file}
@@ -62,10 +65,9 @@ summarise_sample <- function(filepath,
                              out.dir,
                              force=FALSE)
 {
-  N <- Nmet <- anno <- chr <- end <- id <- rate <- set_names <- start <- . <- NULL ## suppress R CMD check complain for NSE
   # fname.out = create_output_filename(filepath, anno_name)
   # filepath <- 'data/CpG/10A_DAC_060320_cytosine.NOMe.CpG.cov.gz'
-  gsub("/$", "", out.dir) # remove trailing slash, if any
+  out.dir <- gsub("/$", "", out.dir) # remove trailing slash, if any
   # sample name as well_condition_batch
   sample.name <- str_split(basename(filepath), pattern = '_cytosine')[[1]][1]
   # output file same as cov file with tsv extension
@@ -112,7 +114,7 @@ summarise_sample <- function(filepath,
         # Compute number of methylated CpGs and the corresponding methylation rates
         .[,.(Nmet=sum(rate==1), N=.N), keyby=.(id)] %>%
         # a and b correspond to the beta prior - see Smallwood et al 2014 SN1
-        .[,.(rate=(Nmet + a)/(N + b)), keyby=.(id)] %>%
+        .[,rate:=(Nmet + a)/(N + b)] %>%
         .[, `:=`(sample = sample.name, anno = anno_name)] %>%
         .[, c("anno","sample","id","Nmet","N","rate")]
       # Store and save results

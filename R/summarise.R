@@ -147,9 +147,14 @@ summarise_anno <-
 
     filepaths <- list.files(samplefiles.path, pattern = '.cov.gz$', full.names = TRUE)
     mget(names(formals()), sys.frame(sys.nframe()))
-    BPPARAM <- BiocParallel::MulticoreParam(workers = cores)
+    if (cores > 1)
+    {
+      ## parallel backend
+      BPPARAM <- if (.Platform$OS.type == "unix") MulticoreParam(workers = cores) else SnowParam(workers = cores)
+    } else {
+      BPPARAM <- SerialParam()
+    }
     context = match.arg(context)
-    # for (filepath in filepaths)
     BiocParallel::bplapply(filepaths, function(filepath)
         {
         summarise_sample(

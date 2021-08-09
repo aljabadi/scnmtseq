@@ -114,7 +114,7 @@ summarise_sample <- function(filepath,
         # Compute number of methylated CpGs and the corresponding methylation rates
         .[,.(Nmet=sum(rate==1), N=.N), keyby=.(id)] %>%
         # a and b correspond to the beta prior - see Smallwood et al 2014 SN1
-        .[,rate:=(Nmet + a)/(N + b)] %>%
+        .[,.(rate=(Nmet + a)/(N + b)), keyby=.(id)] %>%
         .[, `:=`(sample = sample.name, anno = anno_name)] %>%
         .[, c("anno","sample","id","Nmet","N","rate")]
       # Store and save results

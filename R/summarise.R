@@ -74,7 +74,7 @@ summarise_sample <- function(filepath,
   fname.out.base <- gsub('.cov.gz$', '.tsv', basename(filepath))
   fname.out <- file.path(out.dir, ifelse(context == 'CG', 'CpG', 'GpC'), anno_name, fname.out.base)
   if (!dir.exists(dirname(fname.out)))
-    dir.create(dirname(fname.out), recursive = TRUE)
+    dir.create(dirname(fname.out), recursive = TRUE, showWarnings = FALSE)
 
   if (!file.exists(fname.out) | force)
   {
@@ -107,19 +107,20 @@ summarise_sample <- function(filepath,
     anno_data <- anno_data[id != ''] # remove blank IDs
     anno_data[,anno := anno_name]
     anno_data <- setkey(x = anno_data, chr, start, end)
-    tryCatch({
-      ov <- foverlaps(sample_data, anno_data, nomatch=0) %>%
-        .[,"i.end":=NULL] %>% setnames("i.start","pos") %>%
-        # .[,c("sample","anno") := list(sample,anno)] %>%
-        # Compute number of methylated CpGs and the corresponding methylation rates
-        .[,.(Nmet=sum(rate==1), N=.N), keyby=.(id)] %>%
-        # a and b correspond to the beta prior - see Smallwood et al 2014 SN1
-        .[,.(rate=(Nmet + a)/(N + b)), keyby=.(id)] %>%
-        .[, `:=`(sample = sample.name, anno = anno_name)] %>%
-        .[, c("anno","sample","id","Nmet","N","rate")]
-      # Store and save results
-      fwrite(ov, fname.out, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
-    }, error = paste0("Error while processing ", filepath))
+    ov <- foverlaps(sample_data, anno_data, nomatch=0)
+    ov <- ov[,"i.end":=NULL] %>% setnames("i.start","pos")
+    # .[,c("sample","anno") := list(sample,anno)] %>%
+    # Compute number of methylated CpGs and the corresponding methylation rates
+    ov <- ov[,.(Nmet=sum(rate==1), N=.N), keyby=.(id)]
+    # a and b correspond to the beta prior - see Smallwood et al 2014 SN1
+    ov <- ov[,rate:=(Nmet + a)/(N + b)]
+    ov <- ov[, `:=`(sample = sample.name, anno = anno_name)]
+    ov <- ov[, c("anno","sample","id","Nmet","N","rate")]
+    # Store and save results
+    if (any(is.na(ov$rate)))
+      stop("NA found in rates: ", filepath, " with anno: ", annotation_file)
+    fwrite(ov, fname.out, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE)
+
   } else
   {
     file_exists(fname.out)
@@ -225,20 +226,6 @@ summarise <-
            out.dir = 'output/scnomeseq') {
     # This function wraps \code{\link{summarise_context}} for both CG and GC contexts
     datapath <- rm_trailing(datapath)
-    # CpG
-    CpG.path <- file.path(datapath, 'CpG')
-    gc()
-    summarise_context(
-      samplefiles.path = CpG.path,
-      annotation_files = annotation_files,
-      context = 'CG',
-      valid_chromosomes = valid_chromosomes,
-      a = a,
-      b = b,
-      out.dir = out.dir,
-      force = force,
-      cores = cores
-    )
 
     # GpC
     GpC.path <- file.path(datapath, 'GpC')
@@ -254,6 +241,22 @@ summarise <-
       force = force,
       cores = cores
     )
+
+    # CpG
+    CpG.path <- file.path(datapath, 'CpG')
+    gc()
+    summarise_context(
+      samplefiles.path = CpG.path,
+      annotation_files = annotation_files,
+      context = 'CG',
+      valid_chromosomes = valid_chromosomes,
+      a = a,
+      b = b,
+      out.dir = out.dir,
+      force = force,
+      cores = cores
+    )
+
     return(invisible(NULL))
   }
 

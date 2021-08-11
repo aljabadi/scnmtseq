@@ -25,9 +25,16 @@ merge_anno <- function(anno_path, force = FALSE) {
 
   if (force | !file.exists(merged_anno_path))
   {
+    suppressWarnings(file.remove(merged_anno_path))
     for (file in files)
     {
       tsv <- fread(file) %>%  setnames(c("anno","sample","id","Nmet","N","rate"))
+      if (any(is.na(tsv)))
+      {
+        head(tsv)
+        stop("NA values found in :", file)
+      }
+
       tsv <- tsv[id != ''] # remove blank IDs, if any
       fwrite(tsv, merged_anno_path, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE, append = TRUE)
     }
@@ -70,15 +77,20 @@ merge_context <- function(context_path, force = FALSE, cores = 1) {
     }, BPPARAM = BPPARAM, cores = cores)
 
     merged_context_path <- paste0(context_path, '.tsv')
-
     files <- list.files(context_path, pattern = '.tsv$', full.names = TRUE)
 
     if (force | !file.exists(merged_context_path))
     {
+      suppressWarnings(file.remove(merged_context_path))
       cat2("\nMerging all the annotations into", merged_context_path, "...\n")
       for (file in files)
       {
         tsv <- fread(file)
+        if (any(is.na(tsv)))
+        {
+          head(tsv)
+          stop("NA values found in :", file)
+        }
         fwrite(tsv, merged_context_path, quote=FALSE, sep="\t", col.names=FALSE, row.names=FALSE, append = TRUE)
       }
     } else
